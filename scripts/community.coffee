@@ -53,25 +53,20 @@ module.exports = (robot) ->
     .catch (err) ->
       console.log(err)
 
-  loggedIn = (client, json) ->
+  checkLoggedIn = (client, json) ->
     if json.pages.length < 1
       return true
-    console.log(client.cookies)
-    console.log(client)
     client.fetch(json.pages[0].url)
     .then (result) ->
-      if result.$('#'+json.form_name)?
+      console.log(result.$('#'+json.form_id))
+      if result.$('#'+json.form_id).length > 0
+        console.log('loggedIn = false')
         return false
       else
+        console.log('loggedIn = true')
         return true
 
-
-  robot.respond /check$/i, (msg) ->
-    if not client?
-      console.log(client)
-      console.log("hoge")
-    json = loadJSON()
-    msg.reply(json)
+  logIn = (client, json) ->
     client.fetch(json.url)
     .then (result) ->
       if result.response.statusCode isnt 200
@@ -85,6 +80,15 @@ module.exports = (robot) ->
       if result.response.request.href is json.url
         console.log(result)
         throw 'login fail'
+      else
+        console.log('logIn!')
+
+  robot.respond /check$/i, (msg) ->
+    json = loadJSON()
+    checkLoggedIn(client, json)
+    .then (result) ->
+      if not result
+        logIn(client, json)
     .then ->
       checkPages(client, json.pages)
     .then ->
@@ -92,4 +96,4 @@ module.exports = (robot) ->
     .catch (err) ->
       console.log(err)
     .finally ->
-      client.reset()
+      msg.reply('')
