@@ -1,0 +1,18 @@
+{
+  "url": "https://login.yahoo.co.jp/config/login",
+  "id": "your_id",
+  "id_form_name": "login",
+  "password": "your_password",
+  "password_form_name": "passwd",
+  "form_id": "login_form",
+  "distance": 1,
+  "pages": [
+    {
+      "name": "オークション",
+      "url": "http://auctions.yahoo.co.jp/",
+      "id": "page_element_id"
+    }
+  ],
+  "ifttt_event": "your_ifttt_event",
+  "ifttt_key": "your_ifttt_key"
+}

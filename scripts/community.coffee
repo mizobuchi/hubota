@@ -3,6 +3,7 @@ fs = require 'fs'
 props = require 'props'
 crypto = require 'crypto'
 client = require 'cheerio-httpcli'
+cronJob = require('cron').CronJob
 
 module.exports = (robot) ->
   ERR_MSG = 'error'
@@ -14,7 +15,7 @@ module.exports = (robot) ->
 
   loadJSON = ->
     try
-      json = fs.readFileSync('./data/test.json', 'utf8')
+      json = fs.readFileSync('./data/community.json', 'utf8')
       return props(json)
     catch err
       return err
@@ -38,7 +39,14 @@ module.exports = (robot) ->
       console.log(err)
       return err
 
-  checkPages = (client, pages) ->
+  sendToIfttt = (msg, json) ->
+    try
+      client.fetch('https://maker.ifttt.com/trigger/' + json.ifttt_key + '/with/key/' + json.ifttt_key + '?value1=' + encodeURIComponent(msg))
+    catch err
+      console.log(err)
+      return err
+
+  checkPages = (client, pages, json) ->
     page = pages.shift()
     client.fetch(page.url)
     .then (result) ->
@@ -46,6 +54,8 @@ module.exports = (robot) ->
       console.info(page.name)
       res = checkUpdate(page.url, result.$('#'+page.id).text())
       console.log(res)
+      if res is true
+        sendToIfttt(page.name, json)
       saveHex(page.url, result.$('#'+page.id).text())
       if pages.length is 0
         return
@@ -58,8 +68,9 @@ module.exports = (robot) ->
       return true
     client.fetch(json.pages[0].url)
     .then (result) ->
-      console.log(result.$('#'+json.form_id))
+
       if result.$('#'+json.form_id).length > 0
+#      if result.response.request.href.indexOf(json.err_url) is 0
         console.log('loggedIn = false')
         return false
       else
@@ -90,10 +101,29 @@ module.exports = (robot) ->
       if not result
         logIn(client, json)
     .then ->
-      checkPages(client, json.pages)
+      checkPages(client, json.pages, json)
     .then ->
       console.info('finish')
     .catch (err) ->
       console.log(err)
     .finally ->
       msg.reply('')
+
+  communityCron = new cronJob({
+    cronTime: '*/1 * * * *'
+    onTick: ->
+      json = loadJSON()
+      checkLoggedIn(client, json)
+      .then (result) ->
+        if not result
+          logIn(client, json)
+      .then ->
+        checkPages(client, json.pages)
+      .then ->
+        console.info('finish')
+      .catch (err) ->
+        console.log(err)
+      .finally ->
+        msg.reply('')
+    start: true
+  })
