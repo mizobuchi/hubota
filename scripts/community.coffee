@@ -110,7 +110,7 @@ module.exports = (robot) ->
       msg.reply('')
 
   communityCron = new cronJob({
-    cronTime: '*/1 * * * *'
+    cronTime: '*/' + json.distance + ' * * * *'
     onTick: ->
       json = loadJSON()
       checkLoggedIn(client, json)
