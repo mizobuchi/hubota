@@ -1,6 +1,5 @@
 request = require 'request'
 fs = require 'fs'
-props = require 'props'
 crypto = require 'crypto'
 client = require 'cheerio-httpcli'
 cronJob = require('cron').CronJob
@@ -16,7 +15,7 @@ module.exports = (robot) ->
   loadJSON = ->
     try
       json = fs.readFileSync('./data/community.json', 'utf8')
-      return props(json)
+      return JSON.parse(json)
     catch err
       return err
 
@@ -29,52 +28,52 @@ module.exports = (robot) ->
       else
         return true
     catch err
-      console.log(err)
+      robot.logger.error err
       return false
 
   saveHex = (title, str) ->
     try
       json = fs.writeFileSync('./tmp/'+ md5hex(title),md5hex(str))
     catch err
-      console.log(err)
+      robot.logger.error err
       return err
 
   sendToIfttt = (msg, json) ->
     try
-      client.fetch('https://maker.ifttt.com/trigger/' + json.ifttt_key + '/with/key/' + json.ifttt_key + '?value1=' + encodeURIComponent(msg))
+      client.fetch('https://maker.ifttt.com/trigger/' + json.ifttt_event + '/with/key/' + json.ifttt_key + '?value1=' + encodeURIComponent(msg))
     catch err
-      console.log(err)
+      robot.logger.error err
       return err
 
-  checkPages = (client, pages, json) ->
-    page = pages.shift()
+  checkPages = (client, pages, json, opt_pointer) ->
+    this.pointer = opt_pointer || 0
+    page = pages[pointer]
     client.fetch(page.url)
     .then (result) ->
-      console.info(page.url)
-      console.info(page.name)
+      robot.logger.info page.name
       res = checkUpdate(page.url, result.$('#'+page.id).text())
-      console.log(res)
       if res is true
+        robot.logger.info page.name + 'is updated'
         sendToIfttt(page.name, json)
       saveHex(page.url, result.$('#'+page.id).text())
-      if pages.length is 0
+      pointer += 1
+      if pointer == pages.length
         return
-      checkPages(client, pages)
+      checkPages(client, pages, json, pointer)
     .catch (err) ->
-      console.log(err)
+      robot.logger.error err
 
   checkLoggedIn = (client, json) ->
     if json.pages.length < 1
       return true
     client.fetch(json.pages[0].url)
     .then (result) ->
-
       if result.$('#'+json.form_id).length > 0
 #      if result.response.request.href.indexOf(json.err_url) is 0
-        console.log('loggedIn = false')
+        robot.logger.info 'loggedIn = false'
         return false
       else
-        console.log('loggedIn = true')
+        robot.logger.info 'loggedIn = true'
         return true
 
   logIn = (client, json) ->
@@ -89,10 +88,12 @@ module.exports = (robot) ->
     .then (result) ->
       # ログインに成功していればログインページから移動するはず
       if result.response.request.href is json.url
-        console.log(result)
+        robot.logger.error result
         throw 'login fail'
       else
-        console.log('logIn!')
+        robot.logger.info 'logIn!'
+
+  json = loadJSON()
 
   robot.respond /check$/i, (msg) ->
     json = loadJSON()
@@ -112,17 +113,16 @@ module.exports = (robot) ->
   communityCron = new cronJob({
     cronTime: '*/' + json.distance + ' * * * *'
     onTick: ->
-      json = loadJSON()
       checkLoggedIn(client, json)
       .then (result) ->
         if not result
           logIn(client, json)
       .then ->
-        checkPages(client, json.pages)
+        checkPages(client, json.pages, json)
       .then ->
-        console.info('finish')
+        robot.logger.info 'finish'
       .catch (err) ->
-        console.log(err)
+        robot.logger.error err
       .finally ->
         msg.reply('')
     start: true
