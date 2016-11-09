@@ -41,6 +41,8 @@ module.exports = (robot) ->
   sendToIfttt = (msg, json) ->
     try
       client.fetch('https://maker.ifttt.com/trigger/' + json.ifttt_event + '/with/key/' + json.ifttt_key + '?value1=' + encodeURIComponent(msg))
+      .then (result) ->
+        robot.logger.debug result
     catch err
       robot.logger.error err
       return err
@@ -68,8 +70,8 @@ module.exports = (robot) ->
       return true
     client.fetch(json.pages[0].url)
     .then (result) ->
-      if result.$('#'+json.form_id).length > 0
-#      if result.response.request.href.indexOf(json.err_url) is 0
+#      if result.$('#'+json.form_id).length > 0
+      if result.response.request.href.indexOf(json.err_url) is 0
         robot.logger.info 'loggedIn = false'
         return false
       else

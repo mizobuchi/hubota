@@ -28,7 +28,8 @@ Webページは確認にログインが必要という前提です．
 | `id_form_name` | ログインIDを入力するinput要素のname |
 | `password` | ログインパスワード |
 | `password_form_name` | ログインパスワードを入力するinput要素のname |
-| `cron_time` | 確認時間指定 書き方はhttps://github.com/kelektiv/node-cronを参照 |
+| `err_url` | ログインせずにログインが必要なページにアクセスしたときにリダイレクトされるページのURL |
+| `cron_time` | 確認時間指定 書き方はhttps://github.com/kelektiv/node-cron |
 | `pages.name` | ページ名（更新があった場合，これが送信されます） |
 | `pages.url` | 確認したいページのURL |
 | `pages.id` | 上のページの中で確認する要素のid(このid以外の箇所が更新されても通知しません) |
