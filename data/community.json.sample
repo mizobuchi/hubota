@@ -5,7 +5,7 @@
   "password": "your_password",
   "password_form_name": "passwd",
   "form_id": "login_form",
-  "distance": 1,
+  "cron_time":"0 */1 * * * *",
   "pages": [
     {
       "name": "オークション",
