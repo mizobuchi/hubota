@@ -53,6 +53,8 @@ module.exports = (robot) ->
     client.fetch(page.url)
     .then (result) ->
       robot.logger.info page.name
+      if page.exclude_class?
+        result.$('.' + page.exclude_class).remove()
       res = checkUpdate(page.url, result.$('#'+page.id).text())
       if res is true
         robot.logger.info page.name + 'is updated'

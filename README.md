@@ -33,5 +33,6 @@ Webページは確認にログインが必要という前提です．
 | `pages.name` | ページ名（更新があった場合，これが送信されます） |
 | `pages.url` | 確認したいページのURL |
 | `pages.id` | 上のページの中で確認する要素のid(このid以外の箇所が更新されても通知しません) |
+| `pages.exclude_class` | (option) pageの中で更新確認から除外したい箇所のclass |
 | `ifttt_event` | 通知するiftttのeventの名前 |
 | `ifttt_key` | iftttのkey |
