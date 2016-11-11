@@ -1,0 +1,8 @@
+node_modules
+.DS_Store*
+.hubot_history
+
+*~
+/tmp/*
+!/tmp/.keep
+/data/*.json
