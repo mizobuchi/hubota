@@ -100,7 +100,6 @@ module.exports = (robot) ->
   json = loadJSON()
 
   robot.respond /check$/i, (msg) ->
-    json = loadJSON()
     checkLoggedIn(client, json)
     .then (result) ->
       if not result
@@ -108,9 +107,9 @@ module.exports = (robot) ->
     .then ->
       checkPages(client, json.pages, json)
     .then ->
-      console.info('finish')
+      robot.logger.info 'finish'
     .catch (err) ->
-      console.log(err)
+      robot.logger.error err
     .finally ->
       msg.reply('')
 
